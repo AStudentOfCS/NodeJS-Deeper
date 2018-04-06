@@ -14,6 +14,12 @@ module.exports = app => {
   });
 
   app.get('/api/blogs', requireLogin, async (req, res) => {
+    // Restoring Blogs route handler for resolving PROBLEM
+    const blogs = await Blog.find({ _user: req.user.id });
+
+    res.send(blogs);
+
+    /*
     // Apply Cache Server layer to store database with Redis in default action
     const redis = require('redis');
     const redisUrl = 'redis://127.0.0.1:6379';
@@ -39,6 +45,7 @@ module.exports = app => {
     res.send(blogs);
 
     client.set(req.user.id, JSON.stringify(blogs));
+    */
 
     /*
               PROBLEM with this default action way:
@@ -47,7 +54,7 @@ module.exports = app => {
                                 Hook in to Mongoose's query generation and execution process.
                                   --> modify or override Query.prototype functions in Mongoose
 
-              -2- Cached values nevew expire
+              -2- Cached values never expire
                   ==> Solution:
                                 Add timeout to values assigned to redis.
                                 Also add ability to reset all values tied to some specific events.
