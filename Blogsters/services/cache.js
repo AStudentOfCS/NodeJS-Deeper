@@ -4,14 +4,18 @@ const util = require('util');
 
 const redisUrl = 'redis://127.0.0.1:6379';
 const client = redis.createClient(redisUrl);
-client.get = util.promisify(client.get);
+client.hget = util.promisify(client.hget); // nested database structure cache with Redis Hashes
 
 // PROBLEM -1- resolving
 const exec = mongoose.Query.prototype.exec;
 
 // Toggable cache
-mongoose.Query.prototype.cache = function() {
+mongoose.Query.prototype.cache = function(options = {}) {
   this.useCache = true;
+
+  // nested database structure cache with Redis Hashes
+  this.hashKey = JSON.stringify(options.key || '');
+
   return this;
 };
 
@@ -31,7 +35,7 @@ mongoose.Query.prototype.exec = async function() {
   );
 
   // See if we have a value for 'key' in redis
-  const cacheValue = await client.get(key);
+  const cacheValue = await client.hget(this.hashKey, key); // nested database structure cache with Redis Hashes
 
   // If YES, return that
   if (cacheValue) {
@@ -47,7 +51,14 @@ mongoose.Query.prototype.exec = async function() {
 
   // exec function returns Mongoose Documents
   // Redis handles JSON
-  client.set(key, JSON.stringify(result));
+  client.hset(this.hashKey, key, JSON.stringify(result)); // nested database structure cache with Redis Hashes
 
   return result;
+};
+
+// Clear data cache function
+module.exports = {
+  clearHash(hashKey) {
+    client.del(JSON.stringify(hashKey));
+  }
 };
