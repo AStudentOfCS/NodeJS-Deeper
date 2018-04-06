@@ -1,6 +1,7 @@
 # Advanced Node for Application
 
 Working on Node side for this boilerplate project!!!
+
 1/ Data Caching with Redis:
 
 * improving MongoDB Query perfomance
