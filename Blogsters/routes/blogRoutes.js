@@ -14,9 +14,52 @@ module.exports = app => {
   });
 
   app.get('/api/blogs', requireLogin, async (req, res) => {
+    // Apply Cache Server layer to store database with Redis in default action
+    const redis = require('redis');
+    const redisUrl = 'redis://127.0.0.1:6379';
+    const client = redis.createClient(redisUrl);
+    const util = require('util');
+    // instead of using callback in redis - get(key, callback) function
+    // using 'promisify' to make redis get func become 'promise'
+    client.get = util.promisify(client.get);
+
+    // Do we have any cached data in redis related to this query
+    const cachedBlogs = await client.get(req.user.id);
+
+    // if YES, then respond to the request right away and return
+    if (cachedBlogs) {
+      console.log('SERVING FROM CACHE');
+      return res.send(JSON.parse(cachedBlogs));
+    }
+
+    // if NO, we need to respond to request and update our cache to store the data
     const blogs = await Blog.find({ _user: req.user.id });
 
+    console.log('SERVING FROM MONGODB');
     res.send(blogs);
+
+    client.set(req.user.id, JSON.stringify(blogs));
+
+    /*
+              PROBLEM with this default action way:
+              -1- Caching code isn't easily reusable anywhere else in our codebase
+                  ==> Solution:
+                                Hook in to Mongoose's query generation and execution process.
+                                  --> modify or override Query.prototype functions in Mongoose
+
+              -2- Cached values nevew expire
+                  ==> Solution:
+                                Add timeout to values assigned to redis.
+                                Also add ability to reset all values tied to some specific events.
+
+              -3- Cache keys won't work when we introduce other collections or query options
+                  ==> Solution:
+                                Figure out a more robust solution for generating cache keys.
+                                Using query.getOptions() + including collections name
+                                  --> list all query options as a object
+                                  --> change this object to string
+                                  --> use this string for cache keys
+      */
   });
 
   app.post('/api/blogs', requireLogin, async (req, res) => {
