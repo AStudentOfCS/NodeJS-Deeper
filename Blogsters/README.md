@@ -8,3 +8,5 @@ Working on Node side for this boilerplate project!!!
 * speed up database queries with caching for MongoDB backed by Redis
 
 2/ App Testing with Jest on Chromium using Puppeteer.
+
+3/ Wiring up Travis CI
