@@ -9,4 +9,4 @@ Working on Node side for this boilerplate project!!!
 
 2/ App Testing with Jest on Chromium using Puppeteer.
 
-3/ Wiring up Travis CI
+3/ Wiring up Travis CI - Update new repository
