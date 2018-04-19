@@ -1,9 +1,14 @@
 const mongoose = require('mongoose');
 const redis = require('redis');
 const util = require('util');
+const keys = require('../config/keys');
 
-const redisUrl = 'redis://127.0.0.1:6379';
-const client = redis.createClient(redisUrl);
+// const redisUrl = 'redis://127.0.0.1:6379';
+// const client = redis.createClient(redisUrl);
+/**
+ * Update redis URL for Travis-CI server
+ */
+const client = redis.createClient(keys.redisUrl);
 client.hget = util.promisify(client.hget); // nested database structure cache with Redis Hashes
 
 // PROBLEM -1- resolving
