@@ -13,8 +13,30 @@ export const handleToken = token => async dispatch => {
   dispatch({ type: FETCH_USER, payload: res.data });
 };
 
-export const submitBlog = (values, history) => async dispatch => {
-  const res = await axios.post('/api/blogs', values);
+export const submitBlog = (values, file, history) => async dispatch => {
+  /**
+   * Image uploading AWS - Need to config in Permissions:
+    1/ CORS configuration in AWS-bucket-app adding 1 more CORSRule:
+          <CORSRule>
+                <AllowedOrigin>http://localhost:3000</AllowedOrigin>
+                <AllowedMethod>PUT</AllowedMethod>
+                <MaxAgeSeconds>3000</MaxAgeSeconds>
+                <AllowedHeader>*</AllowedHeader>
+          </CORSRule>
+    2/ S3 Bucket Policy
+   */
+  const uploadConfig = await axios.get('/api/upload');
+
+  await axios.put(uploadConfig.data.url, file, {
+    headers: {
+      'Content-Type': file.type
+    }
+  });
+
+  const res = await axios.post('/api/blogs', {
+    ...values,
+    imageUrl: uploadConfig.data.key
+  });
 
   history.push('/blogs');
   dispatch({ type: FETCH_BLOG, payload: res.data });
