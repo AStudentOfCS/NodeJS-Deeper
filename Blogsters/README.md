@@ -9,4 +9,6 @@ Working on Node side for this boilerplate project!!!
 
 2/ App Testing with Jest on Chromium using Puppeteer.
 
-3/ Wiring up Travis CI - Update new repository
+3/ Wiring up Travis CI - Update new repository for TravisCI Testing.
+
+4/ Image Upload - Storing at AWS S3 for scalability.
